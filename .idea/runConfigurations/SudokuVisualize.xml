@@ -3,7 +3,7 @@
     <option name="ALTERNATIVE_JRE_PATH" value="15" />
     <option name="MAIN_CLASS_NAME" value="visualization.SudokuVisualize" />
     <module name="Sudoku Solver" />
-    <option name="PROGRAM_PARAMETERS" value="data\sudoku_1.txt" />
+    <option name="PROGRAM_PARAMETERS" value="data/sudoku_1.txt" />
     <option name="VM_PARAMETERS" value="--module-path C:\javafx\lib --add-modules javafx.controls" />
     <extension name="coverage">
       <pattern>

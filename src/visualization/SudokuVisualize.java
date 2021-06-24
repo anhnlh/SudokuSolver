@@ -1,15 +1,18 @@
 package visualization;
 
 import javafx.application.Platform;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 
 import javafx.application.Application;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import solving.SudokuConfig;
@@ -40,6 +43,8 @@ public class SudokuVisualize extends Application {
 
     private final Image nine = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/nine.png")));
 
+    private final Image logo = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/logo.png")));
+
     private final Image VDivider = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/vertical.png")));
 
     private final Image HDivider = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/horizontal.png")));
@@ -49,6 +54,8 @@ public class SudokuVisualize extends Application {
     private final List<ImageView> cellList = new LinkedList<>();
 
     private boolean solving;
+
+    private Label loadedFile;
 
     private SudokuModel model;
 
@@ -67,6 +74,12 @@ public class SudokuVisualize extends Application {
     @Override
     public void init() throws Exception {
         String filename = getParameters().getRaw().get(0);
+        String[] filenameArray = filename.split("/");
+        loadedFile = new Label();
+        loadedFile.setFont(new Font(20));
+        loadedFile.setPadding(new Insets(5, 0, 0, 0));
+        loadedFile.setText("Loaded file: " + filenameArray[filenameArray.length - 1]);
+
         model = new SudokuModel(filename);
         model.addFront(this);
         makeGraphicMap();
@@ -92,6 +105,7 @@ public class SudokuVisualize extends Application {
 
     private void makeGrid(BorderPane bp) {
         GridPane grid = new GridPane();
+        grid.setPadding(new Insets(0, 3, 0, 10));
 
         for (int row = 0; row < SudokuConfig.DIM; row++) {
             for (int col = 0; col < SudokuConfig.DIM; col++) {
@@ -119,10 +133,30 @@ public class SudokuVisualize extends Application {
         BorderPane border = new BorderPane();
         makeGrid(border);
 
+        BorderPane leftPanel = new BorderPane();
+
+        FlowPane titlePane = new FlowPane();
+        titlePane.setAlignment(Pos.CENTER);
+        titlePane.setPadding(new Insets(10));
+
+        Label title = new Label("SudokuSolver");
+        title.setFont(Font.font(null, FontWeight.BOLD, 48));
+        Label funnyNumber = new Label("3000");
+        funnyNumber.setFont(Font.font(null, FontWeight.BOLD, 48));
+
+        titlePane.getChildren().addAll(title, funnyNumber);
+        leftPanel.setTop(titlePane);
+
+        VBox vb = new VBox();
+        vb.setAlignment(Pos.CENTER);
+        vb.setSpacing(10);
+
         HBox hb = new HBox();
         hb.setAlignment(Pos.CENTER);
+        hb.setPadding(new Insets(0, 0, 0, 3));
+        hb.setSpacing(10);
 
-        Button load = new Button("Load");
+        Button load = new Button("Load new data");
         load.setFont(new Font(20));
 
         FileChooser fc = new FileChooser();
@@ -135,14 +169,30 @@ public class SudokuVisualize extends Application {
             File file = fc.showOpenDialog(stage);
             if (file != null) {
                 model.load("data/" + file.getName());
+                loadedFile.setText("Loaded file: " + file.getName());
             }
             this.solving = true;
         });
 
-        Button solve = new Button("Solve");
-        solve.setFont(new Font(20));
+        Button reset = new Button("Reset puzzle");
+        reset.setFont(new Font(20));
 
-        solve.setOnAction(e -> {
+        reset.setOnAction(e -> {
+            model.reset();
+            this.solving = true;
+        });
+
+        hb.getChildren().addAll(load, reset);
+        border.setLeft(leftPanel);
+
+        VBox vb1 = new VBox();
+        vb1.setAlignment(Pos.CENTER);
+        vb1.setSpacing(10);
+
+        Button visualize = new Button("Visualize!");
+        visualize.setFont(new Font(20));
+
+        visualize.setOnAction(e -> {
             Thread thread = new Thread(() -> {
                 Runnable updater = () -> update(false);
                 Thread t = new Thread(model);
@@ -158,26 +208,28 @@ public class SudokuVisualize extends Application {
             thread.start();
         });
 
-        Button reset = new Button("Reset");
-        reset.setFont(new Font(20));
+        Button customize = new Button("Customize Sudoku board");
+        customize.setFont(new Font(20));
 
-        reset.setOnAction(e -> {
-            model.reset();
-            this.solving = true;
-        });
+        vb1.getChildren().addAll(customize, visualize);
 
-        hb.getChildren().addAll(load, solve, reset);
-        hb.setSpacing(10);
+        leftPanel.setCenter(vb1);
 
-        border.setBottom(hb);
+        vb.getChildren().addAll(loadedFile, hb);
+        leftPanel.setBottom(vb);
+
 
         Scene scene = new Scene(border);
         stage.setScene(scene);
+        stage.setResizable(false);
+        stage.getIcons().add(logo);
+        stage.setTitle("SudokuSolver 3000");
         stage.show();
     }
 
     @Override
     public void stop() throws Exception {
+
         super.stop();
     }
 
