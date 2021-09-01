@@ -1,11 +1,12 @@
 package visualization;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -59,6 +60,10 @@ public class SudokuVisualize extends Application {
 
     private SudokuModel model;
 
+    private final Stage customizeWindow = new Stage();
+
+    private final FlowPane optionPane = new FlowPane();
+
     public static void main(String[] args) {
         if (args.length != 1) {
             System.out.println("Usage: java SudokuVisualize filename");
@@ -105,7 +110,7 @@ public class SudokuVisualize extends Application {
 
     private void makeGrid(BorderPane bp) {
         GridPane grid = new GridPane();
-        grid.setPadding(new Insets(0, 3, 0, 10));
+        grid.setPadding(new Insets(0, 0, 0, 10));
 
         for (int row = 0; row < SudokuConfig.DIM; row++) {
             for (int col = 0; col < SudokuConfig.DIM; col++) {
@@ -126,6 +131,107 @@ public class SudokuVisualize extends Application {
         }
 
         bp.setCenter(grid);
+    }
+
+    private void customizeBoard() {
+        optionPane.setAlignment(Pos.CENTER);
+        optionPane.setPadding(new Insets(10, 0, 0, 0));
+        ToggleGroup group = new ToggleGroup();
+
+        RadioButton rb1 = new RadioButton("Customize (use 0 for empty cells)");
+        rb1.setFont(new Font(20));
+        rb1.setToggleGroup(group);
+        rb1.setSelected(true);
+
+        RadioButton rb2 = new RadioButton("Randomize");
+        rb2.setFont(new Font(20));
+        rb2.setToggleGroup(group);
+
+        Label fieldTitle = new Label("Numbers of cells to be randomly filled (Max: 81):");
+        fieldTitle.setFont(new Font(20));
+        fieldTitle.setPadding(new Insets(0, 0, 50, 0));
+
+        TextField num = new TextField();
+        num.setFont(new Font("Consolas", 20));
+        num.setMaxWidth(50);
+        num.setDisable(true);
+        // limit to 2 digits, thanks stackoverflow
+        num.setTextFormatter(new TextFormatter<>(c -> c.getControlNewText().matches(".{0,2}") ? c : null));
+
+        TextArea ta = new TextArea();
+        ta.setFont(new Font("Consolas", 20));
+        ta.setPrefSize(215, 252);
+        optionPane.getChildren().add(ta);
+
+        // radio button event
+        group.selectedToggleProperty().addListener(new ChangeListener<Toggle>() {
+            @Override
+            public void changed(ObservableValue<? extends Toggle> observableValue, Toggle toggle, Toggle t1) {
+                RadioButton rb = (RadioButton) group.getSelectedToggle();
+                String choice = rb.getText();
+                if ("Randomize".equals(choice)) {
+                    randomize(num, ta);
+                } else {
+                    customize(num, ta);
+                }
+            }
+        });
+
+        HBox numBox = new HBox();
+        numBox.setSpacing(5);
+        numBox.getChildren().addAll(fieldTitle, num);
+
+        VBox radioVB = new VBox();
+        radioVB.setSpacing(35);
+        radioVB.setPadding(new Insets(10));
+        radioVB.getChildren().addAll(rb1, rb2, numBox);
+
+        Button okCustom = new Button("OK");
+        okCustom.setFont(new Font(20));
+        okCustom.setOnAction(e -> {
+            //TODO
+        });
+
+        Button cancelCustom = new Button("Cancel");
+        cancelCustom.setFont(new Font(20));
+        cancelCustom.setOnAction(e -> {
+            //TODO
+        });
+
+        Button saveCustom = new Button("Save to file");
+        saveCustom.setFont(new Font(20));
+        saveCustom.setOnAction(e -> {
+            //TODO
+        });
+
+        HBox buttonHB = new HBox();
+        buttonHB.setSpacing(30);
+        buttonHB.setPadding(new Insets(10));
+        buttonHB.setAlignment(Pos.CENTER);
+        buttonHB.getChildren().addAll(okCustom, cancelCustom, saveCustom);
+
+        GridPane gridCustom = new GridPane();
+        gridCustom.add(radioVB, 0, 0);
+        gridCustom.add(optionPane, 1, 0);
+
+        BorderPane bpCustom = new BorderPane();
+        bpCustom.setCenter(gridCustom);
+        bpCustom.setBottom(buttonHB);
+        Scene s = new Scene(bpCustom);
+        customizeWindow.setScene(s);
+        customizeWindow.show();
+    }
+
+    private void customize(TextField num, TextArea ta) {
+        num.setDisable(true);
+        ta.setEditable(true);
+
+    }
+
+    private void randomize(TextField num, TextArea ta) {
+        num.setDisable(false);
+        ta.setEditable(false);
+
     }
 
     @Override
@@ -153,7 +259,7 @@ public class SudokuVisualize extends Application {
 
         HBox hb = new HBox();
         hb.setAlignment(Pos.CENTER);
-        hb.setPadding(new Insets(0, 0, 0, 3));
+        hb.setPadding(new Insets(0, 0, 15, 3));
         hb.setSpacing(10);
 
         Button load = new Button("Load new data");
@@ -210,14 +316,14 @@ public class SudokuVisualize extends Application {
 
         Button customize = new Button("Customize Sudoku board");
         customize.setFont(new Font(20));
+        customize.setOnAction(e -> customizeBoard());
 
-        vb1.getChildren().addAll(customize, visualize);
+        vb1.getChildren().addAll(visualize, customize);
 
         leftPanel.setCenter(vb1);
 
         vb.getChildren().addAll(loadedFile, hb);
         leftPanel.setBottom(vb);
-
 
         Scene scene = new Scene(border);
         stage.setScene(scene);
