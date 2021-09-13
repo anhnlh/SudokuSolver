@@ -19,8 +19,11 @@ import javafx.stage.Stage;
 import solving.SudokuConfig;
 
 import java.io.File;
+import java.lang.reflect.Array;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class SudokuVisualize extends Application {
@@ -62,31 +65,31 @@ public class SudokuVisualize extends Application {
 
     private final Stage customizeWindow = new Stage();
 
-    private final FlowPane optionPane = new FlowPane();
-
     public static void main(String[] args) {
-        if (args.length != 1) {
-            System.out.println("Usage: java SudokuVisualize filename");
-        } else {
-            try {
-                Application.launch(args);
-            } catch (Exception e) {
-                System.err.println(e.getMessage());
-            }
+        try {
+            Application.launch(args);
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
         }
     }
 
     @Override
     public void init() throws Exception {
-        String filename = getParameters().getRaw().get(0);
-        String[] filenameArray = filename.split("/");
         loadedFile = new Label();
         loadedFile.setFont(new Font(20));
-        loadedFile.setPadding(new Insets(5, 0, 0, 0));
-        loadedFile.setText("Loaded file: " + filenameArray[filenameArray.length - 1]);
+        loadedFile.setPadding(new Insets(5, 0, 0, 5));
+        if (getParameters().getRaw().size() > 0) {
+            String filename = getParameters().getRaw().get(0);
+            String[] filenameArray = filename.split("/");
+            loadedFile.setText("Loaded file: " + filenameArray[filenameArray.length - 1]);
 
-        model = new SudokuModel(filename);
-        model.addFront(this);
+            model = new SudokuModel(filename);
+            model.addFront(this);
+        } else {
+            model = new SudokuModel();
+            model.addFront(this);
+            loadedFile.setText("No file entered, generating an empty board instead.");
+        }
         makeGraphicMap();
     }
 
@@ -134,18 +137,24 @@ public class SudokuVisualize extends Application {
     }
 
     private void customizeBoard() {
+        FlowPane optionPane = new FlowPane();
         optionPane.setAlignment(Pos.CENTER);
         optionPane.setPadding(new Insets(10, 0, 0, 0));
+
         ToggleGroup group = new ToggleGroup();
 
-        RadioButton rb1 = new RadioButton("Customize (use 0 for empty cells)");
+        RadioButton rb1 = new RadioButton("Enter numbers");
         rb1.setFont(new Font(20));
         rb1.setToggleGroup(group);
         rb1.setSelected(true);
 
-        RadioButton rb2 = new RadioButton("Randomize");
+        RadioButton rb2 = new RadioButton("Paste numbers");
         rb2.setFont(new Font(20));
         rb2.setToggleGroup(group);
+
+        RadioButton rb3 = new RadioButton("Randomize numbers");
+        rb3.setFont(new Font(20));
+        rb3.setToggleGroup(group);
 
         Label fieldTitle = new Label("Numbers of cells to be randomly filled (Max: 81):");
         fieldTitle.setFont(new Font(20));
@@ -154,14 +163,60 @@ public class SudokuVisualize extends Application {
         TextField num = new TextField();
         num.setFont(new Font("Consolas", 20));
         num.setMaxWidth(50);
+        num.setPrefHeight(44);
         num.setDisable(true);
         // limit to 2 digits, thanks stackoverflow
         num.setTextFormatter(new TextFormatter<>(c -> c.getControlNewText().matches(".{0,2}") ? c : null));
 
-        TextArea ta = new TextArea();
-        ta.setFont(new Font("Consolas", 20));
-        ta.setPrefSize(215, 252);
-        optionPane.getChildren().add(ta);
+        TextArea customBoard = new TextArea();
+        customBoard.setFont(new Font("Consolas", 20));
+        customBoard.setPrefSize(215, 252);
+
+        LinkedList<TextField> gridList = new LinkedList<>();
+        GridPane customGrid = new GridPane();
+        for (int row = 0; row < SudokuConfig.DIM; row++) {
+            for (int col = 0; col < SudokuConfig.DIM; col++) {
+                TextField tf = new TextField();
+                tf.setMaxWidth(25);
+                // limit to 1 digit
+                tf.setTextFormatter(new TextFormatter<>(c -> c.getControlNewText().matches(".?") ? c : null));
+                customGrid.add(tf, col, row);
+
+                gridList.add(tf);
+            }
+        }
+        optionPane.getChildren().add(customGrid);
+
+        Button randomButton = new Button("Go!");
+        randomButton.setFont(new Font(20));
+        randomButton.setOnAction(e -> {
+//            String[] board = {  "1 2 3 4 5 6 7 8 9",
+//                                "1 2 3 4 5 6 7 8 9",
+//                                "1 2 3 4 5 6 7 8 9",
+//                                "1 2 3 4 5 6 7 8 9",
+//                                "1 2 3 4 5 6 7 8 9",
+//                                "1 2 3 4 5 6 7 8 9",
+//                                "1 2 3 4 5 6 7 8 9",
+//                                "1 2 3 4 5 6 7 8 9",
+//                                "1 2 3 4 5 6 7 8 9"};
+//            for (int i = 0; i < SudokuConfig.DIM; i++) {
+//                String[] strArray = board[i].split(" ");
+//                List<String> list = Arrays.asList(strArray);
+//                Collections.shuffle(list);
+//                board[i] = Arrays.toString(list.toArray());
+//                System.out.println(list);
+//            }
+            SudokuModel solvedBoard = new SudokuModel();
+            solvedBoard.addFront(this);
+            solvedBoard.solve();
+            char[][] board = solvedBoard.getBoard();
+            Random rand = new Random();
+            int min = 50;
+            int maxAdd = 20;
+            for (int i = 0; i < min + rand.nextInt(maxAdd); i++) {
+                // TODO
+            }
+        });
 
         // radio button event
         group.selectedToggleProperty().addListener(new ChangeListener<Toggle>() {
@@ -169,33 +224,45 @@ public class SudokuVisualize extends Application {
             public void changed(ObservableValue<? extends Toggle> observableValue, Toggle toggle, Toggle t1) {
                 RadioButton rb = (RadioButton) group.getSelectedToggle();
                 String choice = rb.getText();
-                if ("Randomize".equals(choice)) {
-                    randomize(num, ta);
+                if ("Randomize numbers".equals(choice)) {
+                    randomize(num, customGrid, optionPane);
+                } else if ("Paste numbers".equals(choice)) {
+                    paste(num, customBoard, optionPane);
                 } else {
-                    customize(num, ta);
+                    enter(num, customGrid, optionPane);
                 }
             }
         });
 
         HBox numBox = new HBox();
         numBox.setSpacing(5);
-        numBox.getChildren().addAll(fieldTitle, num);
+        numBox.getChildren().addAll(fieldTitle, num, randomButton);
 
         VBox radioVB = new VBox();
         radioVB.setSpacing(35);
         radioVB.setPadding(new Insets(10));
-        radioVB.getChildren().addAll(rb1, rb2, numBox);
+        radioVB.getChildren().addAll(rb1, rb2, rb3, numBox);
 
         Button okCustom = new Button("OK");
         okCustom.setFont(new Font(20));
         okCustom.setOnAction(e -> {
             //TODO
+            Pattern pattern = Pattern.compile("\\d+");
+            String[] customNumbers = customBoard.getText().split("\n");
+            for (int i = 0; i < SudokuConfig.DIM; i++) {
+                Matcher matcher = pattern.matcher(customNumbers[i]);
+                long matches = matcher.results().count();
+                if (matches > 9) {
+
+                    break;
+                }
+            }
         });
 
         Button cancelCustom = new Button("Cancel");
         cancelCustom.setFont(new Font(20));
         cancelCustom.setOnAction(e -> {
-            //TODO
+            customizeWindow.close();
         });
 
         Button saveCustom = new Button("Save to file");
@@ -222,16 +289,22 @@ public class SudokuVisualize extends Application {
         customizeWindow.show();
     }
 
-    private void customize(TextField num, TextArea ta) {
+    private void enter(TextField num, GridPane customGrid, FlowPane optionPane) {
         num.setDisable(true);
-        ta.setEditable(true);
-
+        optionPane.getChildren().clear();
+        optionPane.getChildren().add(customGrid);
     }
 
-    private void randomize(TextField num, TextArea ta) {
-        num.setDisable(false);
-        ta.setEditable(false);
+    private void paste(TextField num, TextArea customBoard, FlowPane optionPane) {
+        num.setDisable(true);
+        optionPane.getChildren().clear();
+        optionPane.getChildren().add(customBoard);
+    }
 
+    private void randomize(TextField num, GridPane customGrid, FlowPane optionPane) {
+        num.setDisable(false);
+        optionPane.getChildren().clear();
+        optionPane.getChildren().add(customGrid);
     }
 
     @Override
@@ -323,6 +396,7 @@ public class SudokuVisualize extends Application {
         leftPanel.setCenter(vb1);
 
         vb.getChildren().addAll(loadedFile, hb);
+        vb.setAlignment(Pos.CENTER);
         leftPanel.setBottom(vb);
 
         Scene scene = new Scene(border);
@@ -330,6 +404,7 @@ public class SudokuVisualize extends Application {
         stage.setResizable(false);
         stage.getIcons().add(logo);
         stage.setTitle("SudokuSolver 3000");
+        stage.setOnCloseRequest(e -> customizeWindow.close());
         stage.show();
     }
 

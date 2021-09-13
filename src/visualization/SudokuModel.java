@@ -22,6 +22,10 @@ public class SudokuModel implements Runnable {
         }
     }
 
+    public SudokuModel() {
+        this.config = new SudokuConfig();
+    }
+
     public void addFront(SudokuVisualize front) {
         this.front = front;
     }
@@ -30,14 +34,15 @@ public class SudokuModel implements Runnable {
         return config.getBoard();
     }
 
-    public Optional<Configuration> solve(Configuration config) {
+    private Optional<Configuration> solve(Configuration config) {
         if (config.isGoal()) {
             updateBoard(true);
             return Optional.of(config);
         } else {
             for (Configuration c : config.getSuccessor()) {
                 if (c.isValid()) {
-                    this.config = new SudokuConfig((SudokuConfig) c);  // for visualization
+                    SudokuConfig tmp = (SudokuConfig) c;
+                    this.config = tmp.copyConfig(tmp);  // for visualization
                     Optional<Configuration> sol = solve(c);
                     if (sol.isPresent()) {
                         return sol;
@@ -46,6 +51,10 @@ public class SudokuModel implements Runnable {
             }
         }
         return Optional.empty();
+    }
+
+    public void solve() {
+        solve(config);
     }
 
     private void updateBoard(boolean solved) {
@@ -63,7 +72,12 @@ public class SudokuModel implements Runnable {
     }
 
     public void reset() {
-        load(file);
+        try {
+            load(file);
+        } catch (NullPointerException npe) {
+            config = new SudokuConfig();
+            updateBoard(false);
+        }
     }
 
     /**
@@ -79,6 +93,6 @@ public class SudokuModel implements Runnable {
      */
     @Override
     public void run() {
-        solve(config);
+        solve();
     }
 }

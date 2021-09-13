@@ -25,10 +25,9 @@ public class SudokuConfig implements Configuration {
         BufferedReader in = new BufferedReader(new FileReader(filename));
 
         for (int i = 0; i < DIM; i++) {
-            String[] read = in.readLine().split(" ");
-            for (int j = 0; j < DIM; j++) {
-                board[i][j] = read[j].charAt(0);
-            }
+            // removes whitespaces with replaceAll
+            char[] read = in.readLine().replaceAll("\\s+", "").toCharArray();
+            System.arraycopy(read, 0, board[i], 0, DIM);
         }
 
         in.close();
@@ -37,7 +36,29 @@ public class SudokuConfig implements Configuration {
         col = -1;
     }
 
-    public SudokuConfig(SudokuConfig other) {
+    public SudokuConfig(String[] customNumbers) {
+        for (int i = 0; i < DIM; i++) {
+            // populates board with given string
+            char[] row = customNumbers[i].replaceAll("\\s+", "").toCharArray();
+            System.arraycopy(row, 0, board[i], 0, DIM);
+        }
+
+        row = 0;
+        col = -1;
+    }
+
+    public SudokuConfig() {
+        for (int i = 0; i < DIM; i++) {
+            // initializes empty board
+            char[] emptyBoard = "000000000".toCharArray();
+            System.arraycopy(emptyBoard, 0, board[i], 0, DIM);
+        }
+
+        row = 0;
+        col = -1;
+    }
+
+    private SudokuConfig(SudokuConfig other) {
         row = other.row;
         col = other.col;
 
@@ -45,6 +66,10 @@ public class SudokuConfig implements Configuration {
         for (int i = 0; i < DIM; i++) {
             System.arraycopy(other.board[i], 0, this.board[i], 0, DIM);
         }
+    }
+
+    public SudokuConfig copyConfig(SudokuConfig other) {
+        return new SudokuConfig(other);
     }
 
     @Override
