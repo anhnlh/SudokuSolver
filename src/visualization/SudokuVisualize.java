@@ -19,7 +19,6 @@ import javafx.stage.Stage;
 import solving.SudokuConfig;
 
 import java.io.File;
-import java.lang.reflect.Array;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -59,7 +58,7 @@ public class SudokuVisualize extends Application {
 
     private boolean solving;
 
-    private Label loadedFile;
+    private Label loadStatus;
 
     private SudokuModel model;
 
@@ -75,20 +74,20 @@ public class SudokuVisualize extends Application {
 
     @Override
     public void init() throws Exception {
-        loadedFile = new Label();
-        loadedFile.setFont(new Font(20));
-        loadedFile.setPadding(new Insets(5, 0, 0, 5));
+        loadStatus = new Label();
+        loadStatus.setFont(new Font(20));
+        loadStatus.setPadding(new Insets(5, 0, 0, 5));
         if (getParameters().getRaw().size() > 0) {
             String filename = getParameters().getRaw().get(0);
             String[] filenameArray = filename.split("/");
-            loadedFile.setText("Loaded file: " + filenameArray[filenameArray.length - 1]);
+            loadStatus.setText("Loaded file: " + filenameArray[filenameArray.length - 1]);
 
             model = new SudokuModel(filename);
             model.addFront(this);
         } else {
             model = new SudokuModel();
             model.addFront(this);
-            loadedFile.setText("No file entered, generating an empty board instead.");
+            loadStatus.setText("No file entered, empty board generated instead.");
         }
         makeGraphicMap();
     }
@@ -136,6 +135,34 @@ public class SudokuVisualize extends Application {
         bp.setCenter(grid);
     }
 
+    private void errorPopUp(String error) {
+        Stage popUp = new Stage();
+
+        Label message = new Label(error);
+        message.setFont(new Font(20));
+
+        Button closeButton = new Button("Close");
+        closeButton.setFont(new Font(20));
+        closeButton.setOnAction(e -> popUp.close());
+
+        VBox vb = new VBox();
+        vb.getChildren().addAll(message, closeButton);
+        vb.setSpacing(40);
+        vb.setPadding(new Insets(15));
+        vb.setAlignment(Pos.CENTER);
+
+        BorderPane background = new BorderPane();
+        background.setPrefWidth(400);
+        background.setPrefHeight(200);
+        background.setCenter(vb);
+
+        Scene scene = new Scene(background);
+        popUp.setScene(scene);
+        popUp.setTitle("Error");
+        popUp.getIcons().add(logo);
+        popUp.show();
+    }
+
     private void customizeBoard() {
         FlowPane optionPane = new FlowPane();
         optionPane.setAlignment(Pos.CENTER);
@@ -143,30 +170,30 @@ public class SudokuVisualize extends Application {
 
         ToggleGroup group = new ToggleGroup();
 
-        RadioButton rb1 = new RadioButton("Enter numbers");
-        rb1.setFont(new Font(20));
-        rb1.setToggleGroup(group);
-        rb1.setSelected(true);
+        RadioButton radioEnter = new RadioButton("Enter numbers");
+        radioEnter.setFont(new Font(20));
+        radioEnter.setToggleGroup(group);
+        radioEnter.setSelected(true);
 
-        RadioButton rb2 = new RadioButton("Paste numbers");
-        rb2.setFont(new Font(20));
-        rb2.setToggleGroup(group);
+        RadioButton radioPaste = new RadioButton("Paste numbers");
+        radioPaste.setFont(new Font(20));
+        radioPaste.setToggleGroup(group);
 
-        RadioButton rb3 = new RadioButton("Randomize numbers");
-        rb3.setFont(new Font(20));
-        rb3.setToggleGroup(group);
+        RadioButton radioRandom = new RadioButton("Randomize numbers");
+        radioRandom.setFont(new Font(20));
+        radioRandom.setToggleGroup(group);
 
         Label fieldTitle = new Label("Numbers of cells to be randomly filled (Max: 81):");
         fieldTitle.setFont(new Font(20));
         fieldTitle.setPadding(new Insets(0, 0, 50, 0));
 
-        TextField num = new TextField();
-        num.setFont(new Font("Consolas", 20));
-        num.setMaxWidth(50);
-        num.setPrefHeight(44);
-        num.setDisable(true);
+        TextField numOfRandom = new TextField();
+        numOfRandom.setFont(new Font("Consolas", 20));
+        numOfRandom.setMaxWidth(50);
+        numOfRandom.setPrefHeight(44);
+        numOfRandom.setDisable(true);
         // limit to 2 digits, thanks stackoverflow
-        num.setTextFormatter(new TextFormatter<>(c -> c.getControlNewText().matches(".{0,2}") ? c : null));
+        numOfRandom.setTextFormatter(new TextFormatter<>(c -> c.getControlNewText().matches(".{0,2}") ? c : null));
 
         TextArea customBoard = new TextArea();
         customBoard.setFont(new Font("Consolas", 20));
@@ -189,81 +216,135 @@ public class SudokuVisualize extends Application {
 
         Button randomButton = new Button("Go!");
         randomButton.setFont(new Font(20));
+        randomButton.setDisable(true);
         randomButton.setOnAction(e -> {
-//            String[] board = {  "1 2 3 4 5 6 7 8 9",
-//                                "1 2 3 4 5 6 7 8 9",
-//                                "1 2 3 4 5 6 7 8 9",
-//                                "1 2 3 4 5 6 7 8 9",
-//                                "1 2 3 4 5 6 7 8 9",
-//                                "1 2 3 4 5 6 7 8 9",
-//                                "1 2 3 4 5 6 7 8 9",
-//                                "1 2 3 4 5 6 7 8 9",
-//                                "1 2 3 4 5 6 7 8 9"};
-//            for (int i = 0; i < SudokuConfig.DIM; i++) {
-//                String[] strArray = board[i].split(" ");
-//                List<String> list = Arrays.asList(strArray);
-//                Collections.shuffle(list);
-//                board[i] = Arrays.toString(list.toArray());
-//                System.out.println(list);
-//            }
-            SudokuModel solvedBoard = new SudokuModel();
-            solvedBoard.addFront(this);
-            solvedBoard.solve();
-            char[][] board = solvedBoard.getBoard();
-            Random rand = new Random();
-            int min = 50;
-            int maxAdd = 20;
-            for (int i = 0; i < min + rand.nextInt(maxAdd); i++) {
-                // TODO
+            try {
+                int numDelete = Integer.parseInt(numOfRandom.getText());
+                if (numDelete <= 81) {
+                    SudokuModel solvedBoard = new SudokuModel();
+                    solvedBoard.solve();
+                    char[][] board = solvedBoard.getBoard();
+
+                    Random rand = new Random();
+
+                    // replace numDelete numbers on the board
+                    for (int i = 0; i < SudokuConfig.DIM * SudokuConfig.DIM - numDelete; i++) {
+                        while (true) {
+                            int row = rand.nextInt(9);
+                            int col = rand.nextInt(9);
+                            if (board[row][col] != '0') {
+                                board[row][col] = '0';
+                                break;
+                            }
+                        }
+                    }
+
+                    // setting text of TextFields on the grid
+                    int tfLoc = 0;
+                    for (char[] row : board) {
+                        for (char c : row) {
+                            String val;
+                            if (c == '0') {
+                                val = " ";
+                            } else {
+                                val = String.valueOf(c);
+                            }
+                            gridList.get(tfLoc).setText(val);
+                            tfLoc++;
+                        }
+                    }
+                }
+            } catch (NumberFormatException nfe) {
+                errorPopUp("Needs to be a number!");
             }
         });
 
-        // radio button event
+
+        // radio button choice listener
         group.selectedToggleProperty().addListener(new ChangeListener<Toggle>() {
             @Override
             public void changed(ObservableValue<? extends Toggle> observableValue, Toggle toggle, Toggle t1) {
                 RadioButton rb = (RadioButton) group.getSelectedToggle();
                 String choice = rb.getText();
                 if ("Randomize numbers".equals(choice)) {
-                    randomize(num, customGrid, optionPane);
+                    randomize(numOfRandom, customGrid, optionPane);
                 } else if ("Paste numbers".equals(choice)) {
-                    paste(num, customBoard, optionPane);
+                    paste(numOfRandom, customBoard, randomButton, optionPane);
                 } else {
-                    enter(num, customGrid, optionPane);
+                    enter(numOfRandom, customGrid, randomButton, optionPane);
                 }
             }
         });
 
+        // random num field listener to enable random button
+        numOfRandom.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observableValue, String s, String t1) {
+                randomButton.setDisable(t1.equals("") && radioRandom.isSelected());
+            }
+        });
         HBox numBox = new HBox();
         numBox.setSpacing(5);
-        numBox.getChildren().addAll(fieldTitle, num, randomButton);
+        numBox.getChildren().addAll(fieldTitle, numOfRandom, randomButton);
 
         VBox radioVB = new VBox();
         radioVB.setSpacing(35);
         radioVB.setPadding(new Insets(10));
-        radioVB.getChildren().addAll(rb1, rb2, rb3, numBox);
+        radioVB.getChildren().addAll(radioEnter, radioPaste, radioRandom, numBox);
 
         Button okCustom = new Button("OK");
         okCustom.setFont(new Font(20));
         okCustom.setOnAction(e -> {
             //TODO
-            Pattern pattern = Pattern.compile("\\d+");
-            String[] customNumbers = customBoard.getText().split("\n");
-            for (int i = 0; i < SudokuConfig.DIM; i++) {
-                Matcher matcher = pattern.matcher(customNumbers[i]);
-                long matches = matcher.results().count();
-                if (matches > 9) {
+            List<String> customNumbers = new LinkedList<>();
+            if (radioPaste.isSelected()) {
+                Pattern pattern = Pattern.compile("[^\\d]");
+                customNumbers = Arrays.asList(customBoard.getText().split("\n"));
+                try {
+                    for (int i = 0; i < SudokuConfig.DIM; i++) {
+                        String row = customNumbers.get(i);
+                        if (row.length() < SudokuConfig.DIM) {
+                            while (row.length() != SudokuConfig.DIM) {
+                                customNumbers.set(i, row + "0");
+                                row = customNumbers.get(i);
+                            }
+                        } else if (row.length() > SudokuConfig.DIM) {
+                            errorPopUp("Too many numbers on row " + i + "!");
+                            break;
+                        }
 
-                    break;
+                        Matcher matcher = pattern.matcher(row);
+                        long matches = matcher.results().count();
+                        if (matches != 0) {
+                            errorPopUp("Sudoku does not allow characters!");
+                            break;
+                        } else if (i == SudokuConfig.DIM - 1) { // every row works
+                            model = new SudokuModel(customNumbers);
+                            model.addFront(this);
+                            loadStatus.setText("Sudoku board generated");
+                        }
+                    }
+                } catch (IndexOutOfBoundsException ioobe) {
+                    errorPopUp("Not enough number of rows");
                 }
+            } else {
+                StringBuilder row = new StringBuilder();
+                for (TextField tf : gridList) {
+                    row.append(tf.getText().matches("\\d") ? tf.getText() : "0");
+                    if (row.length() == SudokuConfig.DIM) {
+                        customNumbers.add(row.toString());
+                        row = new StringBuilder();
+                    }
+                }
+                model = new SudokuModel(customNumbers);
+                model.addFront(this);
+                loadStatus.setText("Randomized Sudoku board generated");
             }
         });
 
         Button cancelCustom = new Button("Cancel");
         cancelCustom.setFont(new Font(20));
-        cancelCustom.setOnAction(e -> {
-            customizeWindow.close();
-        });
+        cancelCustom.setOnAction(e -> customizeWindow.close());
 
         Button saveCustom = new Button("Save to file");
         saveCustom.setFont(new Font(20));
@@ -286,17 +367,20 @@ public class SudokuVisualize extends Application {
         bpCustom.setBottom(buttonHB);
         Scene s = new Scene(bpCustom);
         customizeWindow.setScene(s);
+        customizeWindow.getIcons().add(logo);
         customizeWindow.show();
     }
 
-    private void enter(TextField num, GridPane customGrid, FlowPane optionPane) {
+    private void enter(TextField num, GridPane customGrid, Button randomButton, FlowPane optionPane) {
         num.setDisable(true);
+        randomButton.setDisable(true);
         optionPane.getChildren().clear();
         optionPane.getChildren().add(customGrid);
     }
 
-    private void paste(TextField num, TextArea customBoard, FlowPane optionPane) {
+    private void paste(TextField num, TextArea customBoard, Button randomButton, FlowPane optionPane) {
         num.setDisable(true);
+        randomButton.setDisable(true);
         optionPane.getChildren().clear();
         optionPane.getChildren().add(customBoard);
     }
@@ -348,7 +432,7 @@ public class SudokuVisualize extends Application {
             File file = fc.showOpenDialog(stage);
             if (file != null) {
                 model.load("data/" + file.getName());
-                loadedFile.setText("Loaded file: " + file.getName());
+                loadStatus.setText("Loaded file: " + file.getName());
             }
             this.solving = true;
         });
@@ -395,7 +479,7 @@ public class SudokuVisualize extends Application {
 
         leftPanel.setCenter(vb1);
 
-        vb.getChildren().addAll(loadedFile, hb);
+        vb.getChildren().addAll(loadStatus, hb);
         vb.setAlignment(Pos.CENTER);
         leftPanel.setBottom(vb);
 

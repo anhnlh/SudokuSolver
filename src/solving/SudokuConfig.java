@@ -36,10 +36,10 @@ public class SudokuConfig implements Configuration {
         col = -1;
     }
 
-    public SudokuConfig(String[] customNumbers) {
+    public SudokuConfig(List<String> customNumbers) {
         for (int i = 0; i < DIM; i++) {
             // populates board with given string
-            char[] row = customNumbers[i].replaceAll("\\s+", "").toCharArray();
+            char[] row = customNumbers.get(i).replaceAll("\\s+", "").toCharArray();
             System.arraycopy(row, 0, board[i], 0, DIM);
         }
 

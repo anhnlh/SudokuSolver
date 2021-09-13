@@ -4,6 +4,7 @@ import solving.Configuration;
 import solving.SudokuConfig;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 public class SudokuModel implements Runnable {
@@ -20,6 +21,10 @@ public class SudokuModel implements Runnable {
         } catch (IOException ioe) {
             System.err.println(ioe.getMessage());
         }
+    }
+
+    public SudokuModel(List<String> customNumbers) {
+        this.config = new SudokuConfig(customNumbers);
     }
 
     public SudokuModel() {
@@ -58,7 +63,9 @@ public class SudokuModel implements Runnable {
     }
 
     private void updateBoard(boolean solved) {
-        front.update(solved);
+        if (front != null) {
+            front.update(solved);
+        }
     }
 
     public void load(String filename) {
