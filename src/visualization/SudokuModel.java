@@ -4,7 +4,6 @@ import solving.Configuration;
 import solving.SudokuConfig;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 
 public class SudokuModel implements Runnable {
@@ -12,23 +11,20 @@ public class SudokuModel implements Runnable {
 
     private SudokuVisualize front;
 
-    private String file;
+    private char[][] board;
 
     public SudokuModel(String filename) {
-        file = filename;
         try {
             this.config = new SudokuConfig(filename);
+            this.board = config.getBoard();
         } catch (IOException ioe) {
             System.err.println(ioe.getMessage());
         }
     }
 
-    public SudokuModel(List<String> customNumbers) {
-        this.config = new SudokuConfig(customNumbers);
-    }
-
     public SudokuModel() {
         this.config = new SudokuConfig();
+        this.board = config.getBoard();
     }
 
     public void addFront(SudokuVisualize front) {
@@ -71,20 +67,22 @@ public class SudokuModel implements Runnable {
     public void load(String filename) {
         try {
             config = new SudokuConfig(filename);
-            file = filename;
+            board = config.getBoard();
             updateBoard(false);
         } catch (IOException ioe) {
             System.err.println(ioe.getMessage());
         }
     }
 
-    public void reset() {
-        try {
-            load(file);
-        } catch (NullPointerException npe) {
-            config = new SudokuConfig();
-            updateBoard(false);
-        }
+    public void load(char[][] customNumbers) {
+        config = new SudokuConfig(customNumbers);
+        board = config.getBoard();
+        updateBoard(false);
+    }
+
+    public void reset() { // redid reset so it doesn't rely on file
+        config = new SudokuConfig(board);
+        updateBoard(false);
     }
 
     /**

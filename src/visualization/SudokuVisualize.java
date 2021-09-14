@@ -1,8 +1,6 @@
 package visualization;
 
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -73,7 +71,7 @@ public class SudokuVisualize extends Application {
     }
 
     @Override
-    public void init() throws Exception {
+    public void init() {
         loadStatus = new Label();
         loadStatus.setFont(new Font(20));
         loadStatus.setPadding(new Insets(5, 0, 0, 5));
@@ -167,6 +165,7 @@ public class SudokuVisualize extends Application {
         FlowPane optionPane = new FlowPane();
         optionPane.setAlignment(Pos.CENTER);
         optionPane.setPadding(new Insets(10, 0, 0, 0));
+        optionPane.setHgap(30);
 
         ToggleGroup group = new ToggleGroup();
 
@@ -199,20 +198,33 @@ public class SudokuVisualize extends Application {
         customBoard.setFont(new Font("Consolas", 20));
         customBoard.setPrefSize(215, 252);
 
-        LinkedList<TextField> gridList = new LinkedList<>();
+        LinkedList<TextField> textFieldList = new LinkedList<>();
         GridPane customGrid = new GridPane();
+        char[][] currentBoard = model.getBoard();
+
         for (int row = 0; row < SudokuConfig.DIM; row++) {
             for (int col = 0; col < SudokuConfig.DIM; col++) {
                 TextField tf = new TextField();
+                tf.setText(currentBoard[row][col] != '0' ? String.valueOf(currentBoard[row][col]) : "");
+                tf.setAlignment(Pos.CENTER);
                 tf.setMaxWidth(25);
                 // limit to 1 digit
                 tf.setTextFormatter(new TextFormatter<>(c -> c.getControlNewText().matches(".?") ? c : null));
                 customGrid.add(tf, col, row);
 
-                gridList.add(tf);
+                textFieldList.add(tf);
             }
         }
-        optionPane.getChildren().add(customGrid);
+
+        Button clearGridButton = new Button("Clear");
+        clearGridButton.setFont(new Font(20));
+        clearGridButton.setOnAction(e -> {
+            for (TextField tf : textFieldList) {
+                tf.setText("");
+            }
+        });
+
+        optionPane.getChildren().addAll(customGrid, clearGridButton);
 
         Button randomButton = new Button("Go!");
         randomButton.setFont(new Font(20));
@@ -221,9 +233,9 @@ public class SudokuVisualize extends Application {
             try {
                 int numDelete = Integer.parseInt(numOfRandom.getText());
                 if (numDelete <= 81) {
-                    SudokuModel solvedBoard = new SudokuModel();
-                    solvedBoard.solve();
-                    char[][] board = solvedBoard.getBoard();
+                    SudokuModel solvedModel = new SudokuModel();
+                    solvedModel.solve();
+                    char[][] solvedBoard = solvedModel.getBoard();
 
                     Random rand = new Random();
 
@@ -232,8 +244,8 @@ public class SudokuVisualize extends Application {
                         while (true) {
                             int row = rand.nextInt(9);
                             int col = rand.nextInt(9);
-                            if (board[row][col] != '0') {
-                                board[row][col] = '0';
+                            if (solvedBoard[row][col] != '0') {
+                                solvedBoard[row][col] = '0';
                                 break;
                             }
                         }
@@ -241,15 +253,11 @@ public class SudokuVisualize extends Application {
 
                     // setting text of TextFields on the grid
                     int tfLoc = 0;
-                    for (char[] row : board) {
+                    for (char[] row : solvedBoard) {
                         for (char c : row) {
                             String val;
-                            if (c == '0') {
-                                val = " ";
-                            } else {
-                                val = String.valueOf(c);
-                            }
-                            gridList.get(tfLoc).setText(val);
+                            val = c != '0' ? String.valueOf(c) : "";
+                            textFieldList.get(tfLoc).setText(val);
                             tfLoc++;
                         }
                     }
@@ -259,30 +267,21 @@ public class SudokuVisualize extends Application {
             }
         });
 
-
         // radio button choice listener
-        group.selectedToggleProperty().addListener(new ChangeListener<Toggle>() {
-            @Override
-            public void changed(ObservableValue<? extends Toggle> observableValue, Toggle toggle, Toggle t1) {
-                RadioButton rb = (RadioButton) group.getSelectedToggle();
-                String choice = rb.getText();
-                if ("Randomize numbers".equals(choice)) {
-                    randomize(numOfRandom, customGrid, optionPane);
-                } else if ("Paste numbers".equals(choice)) {
-                    paste(numOfRandom, customBoard, randomButton, optionPane);
-                } else {
-                    enter(numOfRandom, customGrid, randomButton, optionPane);
-                }
+        group.selectedToggleProperty().addListener((observableValue, toggle, t1) -> {
+            RadioButton rb = (RadioButton) group.getSelectedToggle();
+            String choice = rb.getText();
+            if ("Randomize numbers".equals(choice)) {
+                randomize(numOfRandom, optionPane, customGrid, clearGridButton);
+            } else if ("Paste numbers".equals(choice)) {
+                paste(numOfRandom, optionPane, customBoard, randomButton);
+            } else {
+                enter(numOfRandom, optionPane, customGrid, randomButton, clearGridButton);
             }
         });
 
         // random num field listener to enable random button
-        numOfRandom.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observableValue, String s, String t1) {
-                randomButton.setDisable(t1.equals("") && radioRandom.isSelected());
-            }
-        });
+        numOfRandom.textProperty().addListener((observableValue, s, t1) -> randomButton.setDisable(t1.equals("") && radioRandom.isSelected()));
         HBox numBox = new HBox();
         numBox.setSpacing(5);
         numBox.getChildren().addAll(fieldTitle, numOfRandom, randomButton);
@@ -295,7 +294,6 @@ public class SudokuVisualize extends Application {
         Button okCustom = new Button("OK");
         okCustom.setFont(new Font(20));
         okCustom.setOnAction(e -> {
-            //TODO
             List<String> customNumbers = new LinkedList<>();
             if (radioPaste.isSelected()) {
                 Pattern pattern = Pattern.compile("[^\\d]");
@@ -303,6 +301,12 @@ public class SudokuVisualize extends Application {
                 try {
                     for (int i = 0; i < SudokuConfig.DIM; i++) {
                         String row = customNumbers.get(i);
+
+                        // if the pasted has periods to separate columns
+                        if (row.contains(".")) {
+                            row = row.replaceAll("\\.", "0");
+                        }
+
                         if (row.length() < SudokuConfig.DIM) {
                             while (row.length() != SudokuConfig.DIM) {
                                 customNumbers.set(i, row + "0");
@@ -318,10 +322,12 @@ public class SudokuVisualize extends Application {
                         if (matches != 0) {
                             errorPopUp("Sudoku does not allow characters!");
                             break;
-                        } else if (i == SudokuConfig.DIM - 1) { // every row works
-                            model = new SudokuModel(customNumbers);
-                            model.addFront(this);
+                        }
+                        // every row works
+                        if (i == SudokuConfig.DIM - 1) {
+                            model.load(listTo2DArray(customNumbers));
                             loadStatus.setText("Sudoku board generated");
+                            customizeWindow.close();
                         }
                     }
                 } catch (IndexOutOfBoundsException ioobe) {
@@ -329,16 +335,24 @@ public class SudokuVisualize extends Application {
                 }
             } else {
                 StringBuilder row = new StringBuilder();
-                for (TextField tf : gridList) {
+                for (int i = 0; i < textFieldList.size(); i++) {
+                    TextField tf = textFieldList.get(i);
+                    if (tf.getText().matches("[^\\d]")) {
+                        errorPopUp("Sudoku does not allow characters!");
+                        break;
+                    }
                     row.append(tf.getText().matches("\\d") ? tf.getText() : "0");
                     if (row.length() == SudokuConfig.DIM) {
                         customNumbers.add(row.toString());
                         row = new StringBuilder();
                     }
+
+                    if (i == textFieldList.size() - 1) {
+                        model.load(listTo2DArray(customNumbers));
+                        loadStatus.setText("Randomized Sudoku board generated");
+                        customizeWindow.close();
+                    }
                 }
-                model = new SudokuModel(customNumbers);
-                model.addFront(this);
-                loadStatus.setText("Randomized Sudoku board generated");
             }
         });
 
@@ -371,28 +385,38 @@ public class SudokuVisualize extends Application {
         customizeWindow.show();
     }
 
-    private void enter(TextField num, GridPane customGrid, Button randomButton, FlowPane optionPane) {
+    private char[][] listTo2DArray(List<String> list) {
+        char[][] result = new char[SudokuConfig.DIM][SudokuConfig.DIM];
+
+        for (int i = 0; i < result.length; i++) {
+            result[i] = list.get(i).toCharArray();
+        }
+
+        return result;
+    }
+
+    private void enter(TextField num, FlowPane optionPane, GridPane customGrid, Button randomButton, Button clearGridButton) {
         num.setDisable(true);
         randomButton.setDisable(true);
         optionPane.getChildren().clear();
-        optionPane.getChildren().add(customGrid);
+        optionPane.getChildren().addAll(customGrid, clearGridButton);
     }
 
-    private void paste(TextField num, TextArea customBoard, Button randomButton, FlowPane optionPane) {
+    private void paste(TextField num, FlowPane optionPane, TextArea customBoard, Button randomButton) {
         num.setDisable(true);
         randomButton.setDisable(true);
         optionPane.getChildren().clear();
         optionPane.getChildren().add(customBoard);
     }
 
-    private void randomize(TextField num, GridPane customGrid, FlowPane optionPane) {
+    private void randomize(TextField num, FlowPane optionPane, GridPane customGrid, Button clearGridButton) {
         num.setDisable(false);
         optionPane.getChildren().clear();
-        optionPane.getChildren().add(customGrid);
+        optionPane.getChildren().addAll(customGrid, clearGridButton);
     }
 
     @Override
-    public void start(Stage stage) throws Exception {
+    public void start(Stage stage) {
         BorderPane border = new BorderPane();
         makeGrid(border);
 

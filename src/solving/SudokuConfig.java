@@ -36,11 +36,9 @@ public class SudokuConfig implements Configuration {
         col = -1;
     }
 
-    public SudokuConfig(List<String> customNumbers) {
-        for (int i = 0; i < DIM; i++) {
-            // populates board with given string
-            char[] row = customNumbers.get(i).replaceAll("\\s+", "").toCharArray();
-            System.arraycopy(row, 0, board[i], 0, DIM);
+    public SudokuConfig(char[][] customNumbers) {
+        for (int i = 0; i < customNumbers.length; i++) {
+            System.arraycopy(customNumbers[i], 0, board[i], 0, DIM);
         }
 
         row = 0;
@@ -139,16 +137,16 @@ public class SudokuConfig implements Configuration {
 
     private List<Character> getCandidates() {
         // all possible candidates
-        List<Character> cand = new LinkedList<>(List.of('1', '2', '3', '4', '5', '6', '7', '8', '9'));
+        List<Character> candidates = new LinkedList<>(List.of('1', '2', '3', '4', '5', '6', '7', '8', '9'));
 
         for (int i = 0; i < DIM; i++) {
             // check horizontal
-            if (cand.contains(board[row][i])) {
-                cand.remove((Character) board[row][i]);
+            if (candidates.contains(board[row][i])) {
+                candidates.remove((Character) board[row][i]);
             }
             // check vertical
-            if (cand.contains(board[i][col])) {
-                cand.remove((Character) board[i][col]);
+            if (candidates.contains(board[i][col])) {
+                candidates.remove((Character) board[i][col]);
             }
         }
 
@@ -176,8 +174,8 @@ public class SudokuConfig implements Configuration {
                     colLoc = -colSave;
                 }
 
-                if (cand.contains(board[row + rowLoc][col + colLoc])) {
-                    cand.remove((Character) board[row + rowLoc][col + colLoc]);
+                if (candidates.contains(board[row + rowLoc][col + colLoc])) {
+                    candidates.remove((Character) board[row + rowLoc][col + colLoc]);
                 }
                 colLoc++;
             }
@@ -188,9 +186,9 @@ public class SudokuConfig implements Configuration {
             j = 0;
         }
 
-        Collections.shuffle(cand);
+        Collections.shuffle(candidates);
 
-        return cand;
+        return candidates;
     }
 
     @Override
