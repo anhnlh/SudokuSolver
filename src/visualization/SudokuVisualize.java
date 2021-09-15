@@ -16,52 +16,80 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import solving.SudokuConfig;
 
-import java.io.File;
+import java.io.*;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
+/**
+ * The View and Controller in MVC.
+ * Creates the SudokuSolver GUI, where all the visualization happens.
+ */
 public class SudokuVisualize extends Application {
+    /** Image of an empty cell */
     private final Image none = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/none.png")));
 
+    /** Image of number 1 */
     private final Image one = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/one.png")));
 
+    /** Image of number 2 */
     private final Image two = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/two.png")));
 
+    /** Image of number 3 */
     private final Image three = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/three.png")));
 
+    /** Image of number 4 */
     private final Image four = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/four.png")));
 
+    /** Image of number 5 */
     private final Image five = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/five.png")));
 
+    /** Image of number 6 */
     private final Image six = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/six.png")));
 
+    /** Image of number 7 */
     private final Image seven = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/seven.png")));
 
+    /** Image of number 8 */
     private final Image eight = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/eight.png")));
 
+    /** Image of number 9 */
     private final Image nine = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/nine.png")));
 
+    /** Image of the logo */
     private final Image logo = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/logo.png")));
 
+    /** Image of a vertical divider (3x3 regions) */
     private final Image VDivider = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/vertical.png")));
 
+    /** Image of a horizontal divider (3x3 regions) */
     private final Image HDivider = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/horizontal.png")));
 
+    /** HashMap that maps the numbers to their respective Images */
     private final HashMap<Integer, Image> graphicMap = new HashMap<>();
 
+    /** List of the individual cells of the board */
     private final List<ImageView> cellList = new LinkedList<>();
 
+    /** Value that indicates the solving of the model */
     private boolean solving;
 
-    private Label loadStatus;
+    /** Status text to be updated in different functions */
+    private Label statusLabel;
 
+    /** The model to work with MVC */
     private SudokuModel model;
 
+    /** The primary window of the application */
     private final Stage customizeWindow = new Stage();
 
+    /**
+     * The entry point of application.
+     *
+     * @param args the input arguments
+     */
     public static void main(String[] args) {
         try {
             Application.launch(args);
@@ -72,20 +100,20 @@ public class SudokuVisualize extends Application {
 
     @Override
     public void init() {
-        loadStatus = new Label();
-        loadStatus.setFont(new Font(20));
-        loadStatus.setPadding(new Insets(5, 0, 0, 5));
+        statusLabel = new Label();
+        statusLabel.setFont(new Font(20));
+        statusLabel.setPadding(new Insets(5, 0, 0, 5));
         if (getParameters().getRaw().size() > 0) {
             String filename = getParameters().getRaw().get(0);
             String[] filenameArray = filename.split("/");
-            loadStatus.setText("Loaded file: " + filenameArray[filenameArray.length - 1]);
+            setStatus("Loaded file: " + filenameArray[filenameArray.length - 1]);
 
             model = new SudokuModel(filename);
             model.addFront(this);
         } else {
             model = new SudokuModel();
             model.addFront(this);
-            loadStatus.setText("No file entered, empty board generated instead.");
+            setStatus("No file entered, empty board generated instead.");
         }
         makeGraphicMap();
     }
@@ -232,7 +260,7 @@ public class SudokuVisualize extends Application {
         randomButton.setOnAction(e -> {
             try {
                 int numDelete = Integer.parseInt(numOfRandom.getText());
-                if (numDelete <= 81) {
+                if (numDelete <= SudokuConfig.DIM * SudokuConfig.DIM) {
                     SudokuModel solvedModel = new SudokuModel();
                     solvedModel.solve();
                     char[][] solvedBoard = solvedModel.getBoard();
@@ -294,9 +322,10 @@ public class SudokuVisualize extends Application {
         Button okCustom = new Button("OK");
         okCustom.setFont(new Font(20));
         okCustom.setOnAction(e -> {
+            boolean error = false;
+
             List<String> customNumbers = new LinkedList<>();
             if (radioPaste.isSelected()) {
-                Pattern pattern = Pattern.compile("[^\\d]");
                 customNumbers = Arrays.asList(customBoard.getText().split("\n"));
                 try {
                     for (int i = 0; i < SudokuConfig.DIM; i++) {
@@ -307,6 +336,15 @@ public class SudokuVisualize extends Application {
                             row = row.replaceAll("\\.", "0");
                         }
 
+                        Pattern pattern = Pattern.compile("[^\\d]");
+                        Matcher matcher = pattern.matcher(row);
+                        long matches = matcher.results().count();
+                        if (matches != 0) {
+                            errorPopUp("Sudoku does not allow characters!");
+                            error = true;
+                            break;
+                        }
+
                         if (row.length() < SudokuConfig.DIM) {
                             while (row.length() != SudokuConfig.DIM) {
                                 customNumbers.set(i, row + "0");
@@ -314,45 +352,25 @@ public class SudokuVisualize extends Application {
                             }
                         } else if (row.length() > SudokuConfig.DIM) {
                             errorPopUp("Too many numbers on row " + i + "!");
+                            error = true;
                             break;
-                        }
-
-                        Matcher matcher = pattern.matcher(row);
-                        long matches = matcher.results().count();
-                        if (matches != 0) {
-                            errorPopUp("Sudoku does not allow characters!");
-                            break;
-                        }
-                        // every row works
-                        if (i == SudokuConfig.DIM - 1) {
-                            model.load(listTo2DArray(customNumbers));
-                            loadStatus.setText("Sudoku board generated");
-                            customizeWindow.close();
                         }
                     }
                 } catch (IndexOutOfBoundsException ioobe) {
                     errorPopUp("Not enough number of rows");
+                    error = true;
                 }
             } else {
-                StringBuilder row = new StringBuilder();
-                for (int i = 0; i < textFieldList.size(); i++) {
-                    TextField tf = textFieldList.get(i);
-                    if (tf.getText().matches("[^\\d]")) {
-                        errorPopUp("Sudoku does not allow characters!");
-                        break;
-                    }
-                    row.append(tf.getText().matches("\\d") ? tf.getText() : "0");
-                    if (row.length() == SudokuConfig.DIM) {
-                        customNumbers.add(row.toString());
-                        row = new StringBuilder();
-                    }
-
-                    if (i == textFieldList.size() - 1) {
-                        model.load(listTo2DArray(customNumbers));
-                        loadStatus.setText("Randomized Sudoku board generated");
-                        customizeWindow.close();
-                    }
+                error = extractTextFields(textFieldList, customNumbers);
+                if (error) {
+                    errorPopUp("Sudoku does not allow characters!");
                 }
+            }
+            // loads the given board
+            if (!error) {
+                model.load(listTo2DArray(customNumbers));
+                setStatus("Custom Sudoku board generated");
+                customizeWindow.close();
             }
         });
 
@@ -363,7 +381,28 @@ public class SudokuVisualize extends Application {
         Button saveCustom = new Button("Save to file");
         saveCustom.setFont(new Font(20));
         saveCustom.setOnAction(e -> {
-            //TODO
+
+            FileChooser fc = new FileChooser();
+            fc.setTitle("Save your sudoku board");
+            //Set extension filter for text files
+            FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter(
+                    "Text Documents (*.txt)", "*.txt");
+            fc.getExtensionFilters().add(extFilter);
+
+            String currentPath = Paths.get(".").toAbsolutePath().normalize().toString() + File.separator + "data";
+            fc.setInitialDirectory(new File(currentPath));
+
+            //Show save file dialog
+            File file = fc.showSaveDialog(customizeWindow);
+            if (file != null) {
+                List<String> customNumbers = new LinkedList<>();
+                boolean error = extractTextFields(textFieldList, customNumbers);
+                if (!error) {
+                    saveBoard(listTo2DArray(customNumbers), file);
+                } else {
+                    errorPopUp("Sudoku does not allow characters!\nFile was not saved.");
+                }
+            }
         });
 
         HBox buttonHB = new HBox();
@@ -385,14 +424,21 @@ public class SudokuVisualize extends Application {
         customizeWindow.show();
     }
 
-    private char[][] listTo2DArray(List<String> list) {
-        char[][] result = new char[SudokuConfig.DIM][SudokuConfig.DIM];
+    private boolean extractTextFields(LinkedList<TextField> textFieldList, List<String> customNumbers) {
+        StringBuilder row = new StringBuilder();
+        for (TextField tf : textFieldList) {
+            if (tf.getText().matches("[^\\d]")) {
+                return true;
+            }
+            row.append(tf.getText().matches("\\d") ? tf.getText() : "0");
 
-        for (int i = 0; i < result.length; i++) {
-            result[i] = list.get(i).toCharArray();
+            // adds to list of string when row has 9 numbers
+            if (row.length() == SudokuConfig.DIM) {
+                customNumbers.add(row.toString());
+                row = new StringBuilder();
+            }
         }
-
-        return result;
+        return false;
     }
 
     private void enter(TextField num, FlowPane optionPane, GridPane customGrid, Button randomButton, Button clearGridButton) {
@@ -413,6 +459,32 @@ public class SudokuVisualize extends Application {
         num.setDisable(false);
         optionPane.getChildren().clear();
         optionPane.getChildren().addAll(customGrid, clearGridButton);
+    }
+
+    private void saveBoard(char[][] boardContent, File file) {
+        try {
+            BufferedWriter writer = new BufferedWriter(new PrintWriter(file));
+            for (char[] row : boardContent) {
+                for (int i = 0; i < SudokuConfig.DIM; i++) {
+                    String line = i != SudokuConfig.DIM - 1 ? row[i] + " " : String.valueOf(row[i]);
+                    writer.write(line);
+                }
+                writer.write("\n");
+            }
+            writer.close();
+        } catch (IOException ex) {
+            errorPopUp(ex.getMessage());
+        }
+    }
+
+    private char[][] listTo2DArray(List<String> list) {
+        char[][] result = new char[SudokuConfig.DIM][SudokuConfig.DIM];
+
+        for (int i = 0; i < result.length; i++) {
+            result[i] = list.get(i).toCharArray();
+        }
+
+        return result;
     }
 
     @Override
@@ -446,17 +518,15 @@ public class SudokuVisualize extends Application {
         Button load = new Button("Load new data");
         load.setFont(new Font(20));
 
-        FileChooser fc = new FileChooser();
-        fc.setTitle("Choose data file for Sudoku puzzle");
-        String currentPath = Paths.get(".").toAbsolutePath().normalize().toString() +
-                File.separator + "data";
-        fc.setInitialDirectory(new File(currentPath));
-
         load.setOnAction(e -> {
+            FileChooser fc = new FileChooser();
+            fc.setTitle("Choose data file for Sudoku puzzle");
+            String currentPath = Paths.get(".").toAbsolutePath().normalize().toString() + File.separator + "data";
+            fc.setInitialDirectory(new File(currentPath));
             File file = fc.showOpenDialog(stage);
             if (file != null) {
                 model.load("data/" + file.getName());
-                loadStatus.setText("Loaded file: " + file.getName());
+                setStatus("Loaded file: " + file.getName());
             }
             this.solving = true;
         });
@@ -481,7 +551,6 @@ public class SudokuVisualize extends Application {
 
         visualize.setOnAction(e -> {
             Thread thread = new Thread(() -> {
-                Runnable updater = () -> update(false);
                 Thread t = new Thread(model);
                 t.start();
                 while (solving) {
@@ -489,7 +558,7 @@ public class SudokuVisualize extends Application {
                         Thread.sleep(1);
                     } catch (InterruptedException ignored) {
                     }
-                    Platform.runLater(updater);
+                    Platform.runLater(() -> update(false));
                 }
             });
             thread.start();
@@ -503,7 +572,7 @@ public class SudokuVisualize extends Application {
 
         leftPanel.setCenter(vb1);
 
-        vb.getChildren().addAll(loadStatus, hb);
+        vb.getChildren().addAll(statusLabel, hb);
         vb.setAlignment(Pos.CENTER);
         leftPanel.setBottom(vb);
 
@@ -512,16 +581,23 @@ public class SudokuVisualize extends Application {
         stage.setResizable(false);
         stage.getIcons().add(logo);
         stage.setTitle("SudokuSolver 3000");
-        stage.setOnCloseRequest(e -> customizeWindow.close());
+        stage.setOnCloseRequest(e -> {
+            solving = false;
+            customizeWindow.close();
+        });
         stage.show();
     }
 
     @Override
     public void stop() throws Exception {
-
         super.stop();
     }
 
+    /**
+     * Update.
+     *
+     * @param solved the solved
+     */
     public void update(boolean solved) {
         int i = 0;
         for (int row = 0; row < SudokuConfig.DIM; row++) {
@@ -531,8 +607,10 @@ public class SudokuVisualize extends Application {
                 i++;
             }
         }
-        if (solved) {
-            this.solving = false;
-        }
+        this.solving = !solved;
     }
+    
+    public void setStatus(String msg) {
+        statusLabel.setText(msg);
+    } 
 }
