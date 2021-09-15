@@ -5,22 +5,54 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * The configuration of a Sudoku board.
+ * Only works with {@link visualization.SudokuModel}
+ *
+ * @author Anh Nguyen
+ */
 public class SudokuConfig implements Configuration {
 
+    /**
+     * Dimension of the Sudoku board
+     */
     public static int DIM = 9;
 
+    /**
+     * Representation of an empty cell is '0'
+     */
     public static char EMPTY = '0';
 
+    /**
+     * 2D char array representation of the Sudoku board
+     */
     private char[][] board = new char[DIM][DIM];
 
+    /**
+     * The current row
+     */
     private int row;
 
+    /**
+     * The current column
+     */
     private int col;
 
+    /**
+     * Gets the board.
+     *
+     * @return 2D char array of the board
+     */
     public char[][] getBoard() {
         return board;
     }
 
+    /**
+     * Creates a new Configuration by reading a given file.
+     *
+     * @param filename given filename
+     * @throws IOException throws an error if the file doesn't exist
+     */
     public SudokuConfig(String filename) throws IOException {
         BufferedReader in = new BufferedReader(new FileReader(filename));
 
@@ -36,15 +68,24 @@ public class SudokuConfig implements Configuration {
         col = -1;
     }
 
-    public SudokuConfig(char[][] customNumbers) {
-        for (int i = 0; i < customNumbers.length; i++) {
-            System.arraycopy(customNumbers[i], 0, board[i], 0, DIM);
+    /**
+     * Creates a new Configuration with a given 2D char array.
+     * Only used by customizing features
+     *
+     * @param givenBoard 2D char array of a pre-made Sudoku board
+     */
+    public SudokuConfig(char[][] givenBoard) {
+        for (int i = 0; i < givenBoard.length; i++) {
+            System.arraycopy(givenBoard[i], 0, board[i], 0, DIM);
         }
 
         row = 0;
         col = -1;
     }
 
+    /**
+     * Creates a new Configuration with an empty board (i.e all zeros).
+     */
     public SudokuConfig() {
         for (int i = 0; i < DIM; i++) {
             // initializes empty board
@@ -56,6 +97,12 @@ public class SudokuConfig implements Configuration {
         col = -1;
     }
 
+    /**
+     * Copies a Configuration.
+     * Only used by the backtracking algorithm.
+     *
+     * @param other the Configuration to be copied to
+     */
     private SudokuConfig(SudokuConfig other) {
         row = other.row;
         col = other.col;
@@ -66,10 +113,20 @@ public class SudokuConfig implements Configuration {
         }
     }
 
+    /**
+     * Public helper method that calls the copy method.
+     *
+     * @param other the Configuration to be copied to
+     * @return a new SudokuConfig
+     */
     public SudokuConfig copyConfig(SudokuConfig other) {
         return new SudokuConfig(other);
     }
 
+    /**
+     * {@inheritDoc}
+     * @return
+     */
     @Override
     public boolean isGoal() {
         int sum = 0;
@@ -81,6 +138,11 @@ public class SudokuConfig implements Configuration {
         return sum == 45;
     }
 
+    /**
+     * Validates the successor in a straight line (vertical and horizontal).
+     *
+     * @return true if valid
+     */
     private boolean checkStraight() {
         char num = board[row][col];
         for (int i = 0; i < DIM; i++) {
@@ -94,6 +156,11 @@ public class SudokuConfig implements Configuration {
         return true;
     }
 
+    /**
+     * Validates the successor within a square of size root of {@link #DIM}.
+     *
+     * @return true if valid
+     */
     private boolean checkSquare() {
         Set<Character> squareSet = new HashSet<>();
         int rowLoc = row % 3;
@@ -135,6 +202,11 @@ public class SudokuConfig implements Configuration {
         return true;
     }
 
+    /**
+     * Gets the candidates that could be successors
+     *
+     * @return a List of char of candidates
+     */
     private List<Character> getCandidates() {
         // all possible candidates
         List<Character> candidates = new LinkedList<>(List.of('1', '2', '3', '4', '5', '6', '7', '8', '9'));
@@ -191,6 +263,10 @@ public class SudokuConfig implements Configuration {
         return candidates;
     }
 
+    /**
+     * {@inheritDoc}
+     * @return
+     */
     @Override
     public Collection<Configuration> getSuccessor() {
         Collection<Configuration> suc = new LinkedHashSet<>();
@@ -214,6 +290,10 @@ public class SudokuConfig implements Configuration {
         return suc;
     }
 
+    /**
+     * {@inheritDoc}
+     * @return
+     */
     @Override
     public boolean isValid() {
         if (row % 3 == 2 && col % 3 == 2 && !checkSquare()) {
@@ -222,6 +302,10 @@ public class SudokuConfig implements Configuration {
         return checkStraight();
     }
 
+    /**
+     * {@inheritDoc}
+     * @return
+     */
     @Override
     public String toString() {
         StringBuilder out = new StringBuilder();

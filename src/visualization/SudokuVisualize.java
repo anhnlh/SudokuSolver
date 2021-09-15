@@ -26,63 +26,103 @@ import java.util.regex.Pattern;
 /**
  * The View and Controller in MVC.
  * Creates the SudokuSolver GUI, where all the visualization happens.
+ *
+ * @author Anh Nguyen
  */
 public class SudokuVisualize extends Application {
-    /** Image of an empty cell */
+    /**
+     * Image of an empty cell
+     */
     private final Image none = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/none.png")));
 
-    /** Image of number 1 */
+    /**
+     * Image of number 1
+     */
     private final Image one = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/one.png")));
 
-    /** Image of number 2 */
+    /**
+     * Image of number 2
+     */
     private final Image two = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/two.png")));
 
-    /** Image of number 3 */
+    /**
+     * Image of number 3
+     */
     private final Image three = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/three.png")));
 
-    /** Image of number 4 */
+    /**
+     * Image of number 4
+     */
     private final Image four = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/four.png")));
 
-    /** Image of number 5 */
+    /**
+     * Image of number 5
+     */
     private final Image five = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/five.png")));
 
-    /** Image of number 6 */
+    /**
+     * Image of number 6
+     */
     private final Image six = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/six.png")));
 
-    /** Image of number 7 */
+    /**
+     * Image of number 7
+     */
     private final Image seven = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/seven.png")));
 
-    /** Image of number 8 */
+    /**
+     * Image of number 8
+     */
     private final Image eight = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/eight.png")));
 
-    /** Image of number 9 */
+    /**
+     * Image of number 9
+     */
     private final Image nine = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/nine.png")));
 
-    /** Image of the logo */
+    /**
+     * Image of the logo
+     */
     private final Image logo = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/logo.png")));
 
-    /** Image of a vertical divider (3x3 regions) */
+    /**
+     * Image of a vertical divider (3x3 regions)
+     */
     private final Image VDivider = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/vertical.png")));
 
-    /** Image of a horizontal divider (3x3 regions) */
+    /**
+     * Image of a horizontal divider (3x3 regions)
+     */
     private final Image HDivider = new Image(Objects.requireNonNull(getClass().getResourceAsStream("resources/horizontal.png")));
 
-    /** HashMap that maps the numbers to their respective Images */
+    /**
+     * HashMap that maps the numbers to their respective Images
+     */
     private final HashMap<Integer, Image> graphicMap = new HashMap<>();
 
-    /** List of the individual cells of the board */
+    /**
+     * List of the individual cells of the board
+     */
     private final List<ImageView> cellList = new LinkedList<>();
 
-    /** Value that indicates the solving of the model */
+    /**
+     * Value that indicates the solving of the model
+     */
     private boolean solving;
 
-    /** Status text to be updated in different functions */
+    /**
+     * Status text to be updated in different functions
+     */
     private Label statusLabel;
 
-    /** The model to work with MVC */
+    /**
+     * The model to work with MVC
+     */
     private SudokuModel model;
 
-    /** The primary window of the application */
+    /**
+     * The primary window of the application
+     */
     private final Stage customizeWindow = new Stage();
 
     /**
@@ -98,6 +138,9 @@ public class SudokuVisualize extends Application {
         }
     }
 
+    /**
+     * Initializes the model and adds the front to it.
+     */
     @Override
     public void init() {
         statusLabel = new Label();
@@ -118,6 +161,13 @@ public class SudokuVisualize extends Application {
         makeGraphicMap();
     }
 
+    public void setStatus(String msg) {
+        statusLabel.setText(msg);
+    }
+
+    /**
+     * Creates a map that maps the numbers to the respective images.
+     */
     private void makeGraphicMap() {
         graphicMap.put(0, none);
         graphicMap.put(1, one);
@@ -131,11 +181,23 @@ public class SudokuVisualize extends Application {
         graphicMap.put(9, nine);
     }
 
-    private void setCellGraphic(ImageView cell, int r, int c) {
+    /**
+     * Sets the image of a cell in the Sudoku board
+     *
+     * @param cell the image to be set
+     * @param row  row of the cell
+     * @param col  column of the cell
+     */
+    private void setCellGraphic(ImageView cell, int row, int col) {
         char[][] board = model.getBoard();
-        cell.setImage(graphicMap.get(Character.getNumericValue(board[r][c])));
+        cell.setImage(graphicMap.get(Character.getNumericValue(board[row][col])));
     }
 
+    /**
+     * Creates the grid representing the Sudoku board
+     *
+     * @param bp BorderPane for the grid to be added on
+     */
     private void makeGrid(BorderPane bp) {
         GridPane grid = new GridPane();
         grid.setPadding(new Insets(0, 0, 0, 10));
@@ -161,6 +223,11 @@ public class SudokuVisualize extends Application {
         bp.setCenter(grid);
     }
 
+    /**
+     * Error dialog box with a given error message
+     *
+     * @param error error message
+     */
     private void errorPopUp(String error) {
         Stage popUp = new Stage();
 
@@ -189,6 +256,17 @@ public class SudokuVisualize extends Application {
         popUp.show();
     }
 
+    /**
+     * Creates a new window for customization.
+     * <p>
+     * Can customize by entering numbers for each individual cell,
+     * pasting a Sudoku board in plain text, or randomizing.
+     * <p>
+     * Entering and randomizing options have a mini grid
+     * of TextFields to hold each cell's number.
+     * <p>
+     * Long function due to extensive features.
+     */
     private void customizeBoard() {
         FlowPane optionPane = new FlowPane();
         optionPane.setAlignment(Pos.CENTER);
@@ -270,8 +348,8 @@ public class SudokuVisualize extends Application {
                     // replace numDelete numbers on the board
                     for (int i = 0; i < SudokuConfig.DIM * SudokuConfig.DIM - numDelete; i++) {
                         while (true) {
-                            int row = rand.nextInt(9);
-                            int col = rand.nextInt(9);
+                            int row = rand.nextInt(SudokuConfig.DIM);
+                            int col = rand.nextInt(SudokuConfig.DIM);
                             if (solvedBoard[row][col] != '0') {
                                 solvedBoard[row][col] = '0';
                                 break;
@@ -424,6 +502,14 @@ public class SudokuVisualize extends Application {
         customizeWindow.show();
     }
 
+    /**
+     * Extract the text from all TextFields of the grid to a
+     * List of Strings of each row (i.e length of list will be {@link SudokuConfig#DIM}
+     *
+     * @param textFieldList List of all TextFields
+     * @param customNumbers List of String row representation
+     * @return true if there were characters instead of numbers in a cell else false.
+     */
     private boolean extractTextFields(LinkedList<TextField> textFieldList, List<String> customNumbers) {
         StringBuilder row = new StringBuilder();
         for (TextField tf : textFieldList) {
@@ -432,7 +518,7 @@ public class SudokuVisualize extends Application {
             }
             row.append(tf.getText().matches("\\d") ? tf.getText() : "0");
 
-            // adds to list of string when row has 9 numbers
+            // adds to list of string when row has SudokuConfig.DIM numbers
             if (row.length() == SudokuConfig.DIM) {
                 customNumbers.add(row.toString());
                 row = new StringBuilder();
@@ -441,26 +527,64 @@ public class SudokuVisualize extends Application {
         return false;
     }
 
-    private void enter(TextField num, FlowPane optionPane, GridPane customGrid, Button randomButton, Button clearGridButton) {
-        num.setDisable(true);
+    /**
+     * Runs when Enter radio button is selected.
+     * Disables the random number field and button. Hides the
+     * TextArea to show the TextField grid.
+     *
+     * @param randNum         random number field
+     * @param optionPane      side pane
+     * @param customGrid      TextField grid
+     * @param randomButton    random button
+     * @param clearGridButton clear grid button
+     */
+    private void enter(TextField randNum, FlowPane optionPane, GridPane customGrid, Button randomButton, Button clearGridButton) {
+        randNum.setDisable(true);
         randomButton.setDisable(true);
         optionPane.getChildren().clear();
         optionPane.getChildren().addAll(customGrid, clearGridButton);
     }
 
-    private void paste(TextField num, FlowPane optionPane, TextArea customBoard, Button randomButton) {
-        num.setDisable(true);
+    /**
+     * Runs when Paste radio button is selected.
+     * Disables the random number field and button. Hides the
+     * TextField grid to show the TextArea for pasting text.
+     *
+     * @param randNum      random number field
+     * @param optionPane   side pane
+     * @param customBoard  TextField grid
+     * @param randomButton random button
+     */
+    private void paste(TextField randNum, FlowPane optionPane, TextArea customBoard, Button randomButton) {
+        randNum.setDisable(true);
         randomButton.setDisable(true);
         optionPane.getChildren().clear();
         optionPane.getChildren().add(customBoard);
     }
 
-    private void randomize(TextField num, FlowPane optionPane, GridPane customGrid, Button clearGridButton) {
-        num.setDisable(false);
+    /**
+     * Runs when Randomize radio button is selected.
+     * Enables the random number field, but does not enable
+     * the button because that's done by a listener in {@link SudokuVisualize#customizeBoard()}
+     *
+     * @param randNum         random number field
+     * @param optionPane      side pane
+     * @param customGrid      TextField grid
+     * @param clearGridButton clear grid button
+     */
+    private void randomize(TextField randNum, FlowPane optionPane, GridPane customGrid, Button clearGridButton) {
+        randNum.setDisable(false);
         optionPane.getChildren().clear();
         optionPane.getChildren().addAll(customGrid, clearGridButton);
     }
 
+    /**
+     * Method used when saving the custom Sudoku board.
+     * Writes to a file.
+     *
+     * @param boardContent content
+     * @param file         given file
+     */
     private void saveBoard(char[][] boardContent, File file) {
         try {
             BufferedWriter writer = new BufferedWriter(new PrintWriter(file));
@@ -477,6 +601,12 @@ public class SudokuVisualize extends Application {
         }
     }
 
+    /**
+     * Useful method to convert a list of String to a 2D char array.
+     *
+     * @param list given list
+     * @return 2D char array
+     */
     private char[][] listTo2DArray(List<String> list) {
         char[][] result = new char[SudokuConfig.DIM][SudokuConfig.DIM];
 
@@ -487,6 +617,16 @@ public class SudokuVisualize extends Application {
         return result;
     }
 
+    /**
+     * Starts the JavaFX Application.
+     * Creates the SudokuSolver 3000 GUI.
+     * <p>
+     * Features include visualizing the backtracking algorithm
+     * used to solve the Sudoku board, customizing the Sudoku
+     * board, loading files of the board, and resetting the puzzle.
+     *
+     * @param stage the main window
+     */
     @Override
     public void start(Stage stage) {
         BorderPane border = new BorderPane();
@@ -588,13 +728,8 @@ public class SudokuVisualize extends Application {
         stage.show();
     }
 
-    @Override
-    public void stop() throws Exception {
-        super.stop();
-    }
-
     /**
-     * Update.
+     * Updates the board with new values from the model.
      *
      * @param solved the solved
      */
@@ -609,8 +744,14 @@ public class SudokuVisualize extends Application {
         }
         this.solving = !solved;
     }
-    
-    public void setStatus(String msg) {
-        statusLabel.setText(msg);
-    } 
+
+    /**
+     * {@inheritDoc}
+     *
+     * @throws Exception
+     */
+    @Override
+    public void stop() throws Exception {
+        super.stop();
+    }
 }

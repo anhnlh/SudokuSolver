@@ -10,6 +10,8 @@ import java.util.Optional;
  * The model in MVC.
  * Works directly with {@link SudokuConfig} to manipulate the back end
  * of the Sudoku board.
+ *
+ * @author Anh Nguyen
  */
 public class SudokuModel implements Runnable {
     /** Current configuration of the Sudoku board */
