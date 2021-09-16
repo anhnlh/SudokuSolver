@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="SudokuMain" type="Application" factoryName="Application" nameIsGenerated="true">
-    <option name="MAIN_CLASS_NAME" value="solving.SudokuMain" />
+    <option name="MAIN_CLASS_NAME" value="visualization.SudokuMain" />
     <module name="Sudoku Solver" />
     <option name="PROGRAM_PARAMETERS" value="data\sudoku_1.txt" />
     <method v="2">

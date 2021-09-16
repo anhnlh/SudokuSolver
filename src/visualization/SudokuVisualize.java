@@ -156,7 +156,7 @@ public class SudokuVisualize extends Application {
         } else {
             model = new SudokuModel();
             model.addFront(this);
-            setStatus("No file entered, empty board generated instead.");
+            setStatus("No file found, empty board generated.");
         }
         makeGraphicMap();
     }
@@ -251,7 +251,7 @@ public class SudokuVisualize extends Application {
 
         Scene scene = new Scene(background);
         popUp.setScene(scene);
-        popUp.setTitle("Error");
+        popUp.setTitle("Error Dialog");
         popUp.getIcons().add(logo);
         popUp.show();
     }
@@ -498,6 +498,7 @@ public class SudokuVisualize extends Application {
         bpCustom.setBottom(buttonHB);
         Scene s = new Scene(bpCustom);
         customizeWindow.setScene(s);
+        customizeWindow.setTitle("Customize");
         customizeWindow.getIcons().add(logo);
         customizeWindow.show();
     }

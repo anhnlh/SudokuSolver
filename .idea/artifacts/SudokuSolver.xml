@@ -1,0 +1,54 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="SudokuSolver">
+    <output-path>$PROJECT_DIR$/out/artifacts/SudokuSolver</output-path>
+    <root id="archive" name="Sudoku Solver.jar">
+      <element id="module-output" name="Sudoku Solver" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../javafx/lib/javafx-swt.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../javafx/lib/javafx.web.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../javafx/lib/javafx.base.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../javafx/lib/javafx.fxml.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../javafx/lib/javafx.media.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../javafx/lib/javafx.swing.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../javafx/lib/javafx.controls.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../javafx/lib/javafx.graphics.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../javafx-sdk-17/lib/javafx-swt.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../javafx-sdk-17/lib/javafx.web.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../javafx-sdk-17/lib/javafx.base.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../javafx-sdk-17/lib/javafx.fxml.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../javafx-sdk-17/lib/javafx.media.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../javafx-sdk-17/lib/javafx.swing.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../javafx-sdk-17/lib/javafx.controls.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../javafx-sdk-17/lib/javafx.graphics.jar" path-in-jar="/" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/api-ms-win-crt-convert-l1-1-0.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/api-ms-win-crt-environment-l1-1-0.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/api-ms-win-crt-filesystem-l1-1-0.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/api-ms-win-crt-heap-l1-1-0.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/api-ms-win-crt-locale-l1-1-0.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/api-ms-win-crt-math-l1-1-0.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/api-ms-win-crt-multibyte-l1-1-0.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/api-ms-win-crt-private-l1-1-0.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/api-ms-win-crt-process-l1-1-0.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/api-ms-win-crt-runtime-l1-1-0.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/api-ms-win-crt-stdio-l1-1-0.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/api-ms-win-crt-string-l1-1-0.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/api-ms-win-crt-time-l1-1-0.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/api-ms-win-crt-utility-l1-1-0.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/decora_sse.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/fxplugins.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/glass.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/glib-lite.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/gstreamer-lite.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/javafx_font.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/javafx_iio.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/jfxmedia.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/jfxwebkit.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/msvcp140.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/prism_common.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/prism_d3d.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/prism_sw.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/ucrtbase.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/vcruntime140.dll" />
+      <element id="file-copy" path="$PROJECT_DIR$/../../../../javafx-sdk-17/bin/vcruntime140_1.dll" />
+    </root>
+  </artifact>
+</component>
